@@ -854,8 +854,6 @@ void mutt_save_attachment_list(struct AttachCtx *actx, FILE *fp, bool tag,
         {
           menu_set_index(menu, top->aptr->num);
           menu_queue_redraw(menu, MENU_REDRAW_OLD_CUR);
-
-          menu_redraw(menu);
         }
         if (c_attach_save_without_prompting)
         {

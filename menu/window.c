@@ -140,5 +140,7 @@ struct MuttWindow *menu_new_window(enum MenuType type, struct ConfigSubset *sub)
   win->wdata = menu;
   win->wdata_free = menu_wdata_free;
 
+  menu->win = win;
+
   return win;
 }
