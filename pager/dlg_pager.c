@@ -2461,7 +2461,7 @@ int mutt_pager(struct PagerView *pview)
          (priv->line_info[priv->curline].offset < (priv->sb.st_size - 1)))
   {
     pager_queue_redraw(priv, MENU_REDRAW_FULL);
-    pager_menu_repaint(pview->win_index);
+    pager_menu_repaint(pview->win_index); //QWQ ???
     // trick user, as if nothing happened
     // scroll down to previosly saved offset
     priv->topline =
@@ -2611,6 +2611,7 @@ int mutt_pager(struct PagerView *pview)
 
     if (SigWinch)
     {
+      //QWQ SIGWINCH
       SigWinch = false;
       mutt_resize_screen();
 
@@ -2638,6 +2639,7 @@ int mutt_pager(struct PagerView *pview)
       continue;
     }
 
+    //QWQ LOOP
     pager_queue_redraw(priv, MENU_REDRAW_FULL);
     window_redraw(NULL);
     //-------------------------------------------------------------------------
@@ -3222,6 +3224,7 @@ int mutt_pager(struct PagerView *pview)
 
       case OP_REDRAW:
         mutt_message("PAGER OP_REDRAW");
+        //QWQ Ctrl-L
         mutt_resize_screen();
         window_invalidate_all();
         break;
@@ -3463,6 +3466,7 @@ int mutt_pager(struct PagerView *pview)
         //=======================================================================
 
       case OP_ENTER_COMMAND:
+        //QWQ COMMAND
         mutt_enter_command();
 
         mutt_resize_screen();
