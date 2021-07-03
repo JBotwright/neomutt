@@ -338,7 +338,7 @@ static void dlg_select_alias(char *buf, size_t buflen, struct AliasMenuData *mda
             if (avp->is_tagged)
               avp->is_deleted = (op == OP_DELETE);
           }
-          menu_queue_redraw(menu, MENU_REDRAW_INDEX);
+          menu_queue_redraw(menu, MENU_REDRAW_FULL);
         }
         else
         {
@@ -349,7 +349,6 @@ static void dlg_select_alias(char *buf, size_t buflen, struct AliasMenuData *mda
           if (c_resolve && (index < (menu->max - 1)))
           {
             menu_set_index(menu, index + 1);
-            menu_queue_redraw(menu, MENU_REDRAW_INDEX);
           }
         }
         break;

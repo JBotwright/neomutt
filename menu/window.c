@@ -99,10 +99,16 @@ static int menu_repaint(struct MuttWindow *win)
   if (win->type != WT_MENU)
     return 0;
 
-  // struct Menu *menu = win->wdata;
-  // menu_redraw(menu);
-  // menu->redraw = MENU_REDRAW_NO_FLAGS;
+  struct Menu *menu = win->wdata;
 
+  if (menu->redraw & MENU_REDRAW_FULL)
+    menu_redraw_index(menu);
+  else if (menu->redraw & MENU_REDRAW_OLD_CUR)
+    menu_redraw_motion(menu);
+  else if (menu->redraw & MENU_REDRAW_CURRENT)
+    menu_redraw_current(menu);
+
+  menu->redraw = MENU_REDRAW_NO_FLAGS;
   mutt_debug(LL_DEBUG5, "repaint done\n");
   return 0;
 }

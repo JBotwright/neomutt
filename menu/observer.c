@@ -99,11 +99,11 @@ static int menu_window_observer(struct NotifyCallback *nc)
   if (nc->event_subtype == NT_WINDOW_STATE)
   {
     menu->pagelen = win_menu->state.rows;
-    menu->redraw |= MENU_REDRAW_INDEX;
+    menu->redraw |= MENU_REDRAW_FULL;
 
     win_menu->actions |= WA_RECALC | WA_REPAINT;
     mutt_debug(LL_DEBUG5,
-               "window state done, request MENU_REDRAW_INDEX, WA_REPAINT\n");
+               "window state done, request MENU_REDRAW_FULL, WA_REPAINT\n");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
