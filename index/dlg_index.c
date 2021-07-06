@@ -1139,8 +1139,6 @@ static void index_custom_redraw(struct Menu *menu)
   const int index = menu_get_index(menu);
   if (m && m->emails && (index < m->vcount))
   {
-    menu_check_recenter(menu);
-
     if (menu->redraw & MENU_REDRAW_INDEX)
     {
       menu_redraw_index(menu);
@@ -1681,7 +1679,6 @@ struct Mailbox *mutt_index_menu(struct MuttWindow *dlg, struct Mailbox *m_init)
                 menu_set_index(priv->menu, e->vnum);
                 /* as an added courtesy, recenter the priv->menu
                   * with the current entry at the middle of the screen */
-                menu_check_recenter(priv->menu);
                 menu_current_middle(priv->menu);
               }
             }
