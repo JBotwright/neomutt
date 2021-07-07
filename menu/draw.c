@@ -378,8 +378,11 @@ void menu_redraw_index(struct Menu *menu)
     }
     else
     {
+      mutt_curses_set_color(MT_COLOR_QUOTED);
+      mutt_window_move(menu->win, 0, i - menu->top);
+      mutt_window_printf(menu->win, "+%d", i - menu->max + 1);
+      mutt_window_clrtoeol(menu->win);
       mutt_curses_set_color(MT_COLOR_NORMAL);
-      mutt_window_clearline(menu->win, i - menu->top);
     }
   }
   mutt_curses_set_color(MT_COLOR_NORMAL);

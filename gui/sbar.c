@@ -93,7 +93,7 @@ static int sbar_recalc(struct MuttWindow *win)
  */
 static int sbar_repaint(struct MuttWindow *win)
 {
-  if (!mutt_window_is_visible(win))
+  // if (!mutt_window_is_visible(win))
     return 0;
 
   struct SBarPrivateData *priv = win->wdata;
