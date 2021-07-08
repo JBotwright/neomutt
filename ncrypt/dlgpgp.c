@@ -510,7 +510,7 @@ static void pgp_make_entry(struct Menu *menu, char *buf, size_t buflen, int line
 
   const char *const c_pgp_entry_format =
       cs_subset_string(NeoMutt->sub, "pgp_entry_format");
-  mutt_expando_format(buf, buflen, 0, menu->win_index->state.cols,
+  mutt_expando_format(buf, buflen, 0, menu->win->state.cols,
                       NONULL(c_pgp_entry_format), pgp_entry_format_str,
                       (intptr_t) &entry, MUTT_FORMAT_ARROWCURSOR);
 }
@@ -662,7 +662,7 @@ struct PgpKeyInfo *dlg_select_pgp_key(struct PgpKeyInfo *keys,
   menu->mdata = key_table;
   menu->mdata_free = pgp_key_table_free;
 
-  struct MuttWindow *win_menu = menu->win_index;
+  struct MuttWindow *win_menu = menu->win;
 
   // NT_COLOR is handled by the SimpleDialog
   notify_observer_add(NeoMutt->notify, NT_CONFIG, pgp_key_config_observer, menu);
