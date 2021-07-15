@@ -214,3 +214,75 @@ char *mutt_account_getoauthbearer(struct ConnAccount *cac)
 
   return encoded_token;
 }
+
+/**
+ * mutt_account_getxoauth2 - Get an XOAUTH2 token
+ * @param cac Account to use
+ * @retval ptr  OAuth token
+ * @retval NULL Error
+ *
+ * Run an external command to generate the oauth refresh token for an account,
+ * then create and encode the OAUTHBEARER token based on RFC7628.
+ *
+ * @note Caller should free the token
+ */
+char *mutt_account_getxoauth2(struct ConnAccount *cac)
+{
+  if (!cac || !cac->get_field)
+    return NULL;
+
+  /* The oauthbearer token includes the login */
+  if (mutt_account_getlogin(cac))
+    return NULL;
+
+  const char *cmd = cac->get_field(MUTT_CA_OAUTH_CMD, cac->gf_data);
+  if (!cmd)
+  {
+    /* L10N: You will see this error message if (1) you have "oauthbearer" in
+       one of your $*_authenticators and (2) you do not have the corresponding
+       $*_oauth_refresh_command defined. So the message does not mean "None of
+       your $*_oauth_refresh_command's are defined." */
+    mutt_error(_("No OAUTH refresh command defined"));
+    return NULL;
+  }
+
+  FILE *fp = NULL;
+  pid_t pid = filter_create(cmd, NULL, &fp, NULL);
+  if (pid < 0)
+  {
+    mutt_perror(_("Unable to run refresh command"));
+    return NULL;
+  }
+
+  size_t token_size = 0;
+  char *token = mutt_file_read_line(NULL, &token_size, fp, NULL, MUTT_RL_NO_FLAGS);
+  mutt_file_fclose(&fp);
+  filter_wait(pid);
+
+  if (!token || (*token == '\0'))
+  {
+    mutt_error(_("Command returned empty string"));
+    FREE(&token);
+    return NULL;
+  }
+
+  if (token_size > 2048)
+  {
+    mutt_error(_("OAUTH token is too big: %ld"), token_size);
+    FREE(&token);
+    return NULL;
+  }
+
+  char oauthbearer[3000];
+  int oalen = snprintf(oauthbearer, sizeof(oauthbearer), "user=%s\001auth=Bearer %s\001\001",
+                       cac->login, token);
+  FREE(&token);
+
+  size_t encoded_len = oalen * 4 / 3 + 10;
+  assert(encoded_len < 3000); // Assure LGTM that we won't overflow
+
+  char *encoded_token = mutt_mem_malloc(encoded_len);
+  mutt_b64_encode(oauthbearer, oalen, encoded_token, encoded_len);
+
+  return encoded_token;
+}

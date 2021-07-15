@@ -99,3 +99,64 @@ enum ImapAuthRes imap_auth_oauth(struct ImapAccountData *adata, const char *meth
   mutt_error(_("%s authentication failed"), "OAUTHBEARER");
   return IMAP_AUTH_FAILURE;
 }
+
+/**
+ * imap_auth_xoauth2 - Authenticate an IMAP connection using XOAUTH2 - Implements ImapAuth::authenticate()
+ */
+enum ImapAuthRes imap_auth_xoauth2(struct ImapAccountData *adata, const char *method)
+{
+  char *ibuf = NULL;
+  char *xoauth2 = NULL;
+  int ilen;
+  int rc;
+
+  /* For now, we only support SASL_IR also and over TLS */
+  if (!(adata->capabilities & IMAP_CAP_AUTH_XOAUTH2) ||
+      !(adata->capabilities & IMAP_CAP_SASL_IR) || (adata->conn->ssf == 0))
+  {
+    return IMAP_AUTH_UNAVAIL;
+  }
+
+  /* If they did not explicitly request or configure oauth then fail quietly */
+  const char *const c_imap_oauth_refresh_command =
+      cs_subset_string(NeoMutt->sub, "imap_oauth_refresh_command");
+  if (!method && !c_imap_oauth_refresh_command)
+    return IMAP_AUTH_UNAVAIL;
+
+  // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
+  mutt_message(_("Authenticating (%s)..."), "XOAUTH2");
+
+  /* We get the access token from the imap_oauth_refresh_command */
+  xoauth2 = mutt_account_getxoauth2(&adata->conn->account);
+  if (!xoauth2)
+    return IMAP_AUTH_FAILURE;
+
+  ilen = mutt_str_len(xoauth2) + 30;
+  ibuf = mutt_mem_malloc(ilen);
+  snprintf(ibuf, ilen, "AUTHENTICATE XOAUTH2 %s", xoauth2);
+
+  /* This doesn't really contain a password, but the token is good for
+   * an hour, so suppress it anyways.  */
+  rc = imap_exec(adata, ibuf, IMAP_CMD_PASS);
+
+  FREE(&xoauth2);
+  FREE(&ibuf);
+
+  if (rc != IMAP_EXEC_SUCCESS)
+  {
+    /* The error response was in SASL continuation, so continue the SASL
+     * to cause a failure and exit SASL input.  See RFC7628 3.2.3 */
+    mutt_socket_send(adata->conn, "\001");
+    rc = imap_exec(adata, ibuf, IMAP_CMD_NO_FLAGS);
+  }
+
+  if (rc == IMAP_EXEC_SUCCESS)
+  {
+    mutt_clear_error();
+    return IMAP_AUTH_SUCCESS;
+  }
+
+  // L10N: %s is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
+  mutt_error(_("%s authentication failed"), "XOAUTH2");
+  return IMAP_AUTH_FAILURE;
+}

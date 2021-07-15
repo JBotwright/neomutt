@@ -71,6 +71,7 @@ struct ConnAccount
 
 int   mutt_account_getlogin      (struct ConnAccount *account);
 char *mutt_account_getoauthbearer(struct ConnAccount *account);
+char *mutt_account_getxoauth2    (struct ConnAccount *account);
 int   mutt_account_getpass       (struct ConnAccount *account);
 int   mutt_account_getuser       (struct ConnAccount *account);
 void  mutt_account_unsetpass     (struct ConnAccount *account);

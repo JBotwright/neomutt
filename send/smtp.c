@@ -577,6 +577,40 @@ static int smtp_auth_oauth(struct SmtpAccountData *adata, const char *method)
 }
 
 /**
+ * smtp_auth_xoauth2 - Authenticate an SMTP connection using XOAUTH2
+ * @param adata   SMTP Account data
+ * @param method  Authentication method (not used)
+ * @retval num Result, e.g. #SMTP_AUTH_SUCCESS
+ */
+static int smtp_auth_xoauth2(struct SmtpAccountData *adata, const char *method)
+{
+  (void) method; // This is XOAUTH2
+
+  // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
+  mutt_message(_("Authenticating (%s)..."), "XOAUTH2");
+
+  /* We get the access token from the smtp_oauth_refresh_command */
+  char *xoauth2 = mutt_account_getxoauth2(&adata->conn->account);
+  if (!xoauth2)
+    return SMTP_AUTH_FAIL;
+
+  size_t ilen = strlen(xoauth2) + 30;
+  char *ibuf = mutt_mem_malloc(ilen);
+  snprintf(ibuf, ilen, "AUTH XOAUTH2 %s\r\n", xoauth2);
+
+  int rc = mutt_socket_send(adata->conn, ibuf);
+  FREE(&xoauth2);
+  FREE(&ibuf);
+
+  if (rc == -1)
+    return SMTP_AUTH_FAIL;
+  if (smtp_get_resp(adata) != 0)
+    return SMTP_AUTH_FAIL;
+
+  return SMTP_AUTH_SUCCESS;
+}
+
+/**
  * smtp_auth_plain - Authenticate using plain text
  * @param adata SMTP Account data
  * @param method     Authentication method (not used)
@@ -701,6 +735,7 @@ error:
  */
 static const struct SmtpAuth smtp_authenticators[] = {
   { smtp_auth_oauth, "oauthbearer" },
+  { smtp_auth_xoauth2, "xoauth2" },
   { smtp_auth_plain, "plain" },
   { smtp_auth_login, "login" },
 #ifdef USE_SASL
